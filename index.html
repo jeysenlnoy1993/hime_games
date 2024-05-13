@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Randomly Moving Square</title>
+    <style>
+      #container {
+        position: relative;
+        width: 800px;
+        height: 800px;
+        border: 1px solid black;
+      }
+      #barn {
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        background-image: url("barn.gif"); /* Path to your image */
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        transition: transform 0.2s ease; /* Add smooth transition */
+      }
+
+      #square {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        background-image: url("chick.gif"); /* Path to your image */
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        transition: transform 0.2s ease; /* Add smooth transition */
+      }
+      .egg {
+        position: absolute;
+        width: 23px;
+        height: 30px;
+        background-image: url("egg.png"); /* Path to your image */
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        transition: transform 0.2s ease; /* Add smooth transition */
+      }
+    </style>
+  </head>
+  <body>
+    <audio id="turdSound">
+      <source src="turd.mp3" type="audio/mp3" />
+    </audio>
+    <audio id="chickenSound">
+      <source src="chicken.mp3" type="audio/mp3" />
+    </audio>
+
+    <div id="container">
+      <div id="barn"></div>
+      <div id="square"></div>
+      <div id="eggCount"></div>
+      <div id="chickCount"></div>
+      <div id="soldCount"></div>
+    </div>
+
+    <script>
+      // Restart the background music when it ends
+      // document
+      //   .getElementById("backgroundMusic")
+      //   .addEventListener("ended", function () {
+      //     this.currentTime = 0; // Reset the playback to the beginning
+      //     this.play(); // Restart the playback
+      //   });
+      // Play background music on page load
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const container = document.getElementById("container");
+        const square = document.getElementById("square");
+        const eggCount = document.getElementById("eggCount");
+        const soldCount = document.getElementById("soldCount");
+        const turdSound = document.getElementById("turdSound");
+        const chickenSound = document.getElementById("chickenSound");
+
+        document.addEventListener("DOMContentLoaded", function () {
+          var backgroundMusic = document.getElementById("backgroundMusic");
+          backgroundMusic.play();
+        });
+
+        let x = 0;
+        let y = 0;
+        let speedX = Math.random() * 4; // Random speed between -1 and 1
+        let speedY = Math.random() * 5 - 1; // Random speed between -1 and 1
+        let totalEggs = 0;
+        let totalSold = 0;
+
+        function moveSquare() {
+          x += speedX;
+          y += speedY;
+          square.style.left = x + "px";
+          square.style.top = y + "px";
+
+          if (x <= 0 || x >= container.offsetWidth - square.offsetWidth) {
+            speedX *= -1; // Reverse direction
+          }
+          if (y <= 0 || y >= container.offsetHeight - square.offsetHeight) {
+            speedY *= -1; // Reverse direction
+          }
+
+          // Check if the square is moving left
+          if (speedX > 0) {
+            square.style.transform = "scaleX(-1)"; // Flip image horizontally
+          } else {
+            square.style.transform = "scaleX(1)"; // Reset image flip
+          }
+
+          // border
+          if (x >= container.offsetWidth - square.offsetWidth) {
+            x = container.offsetWidth - square.offsetWidth;
+          }
+          if (y >= container.offsetHeight - square.offsetHeight) {
+            y = container.offsetHeight - square.offsetHeight;
+          }
+        }
+
+        setInterval(moveSquare, 10);
+
+        let isKeyUpAllowed = true; // Flag to track if keyup event is allowed
+
+        //  kEY PRESS
+        document.addEventListener("keyup", function (event) {
+          if (isKeyUpAllowed && event.key) {
+            const turdSound = document.getElementById("turdSound");
+            // Play turd sound
+            turdSound.play();
+
+            isKeyUpAllowed = false; // Set the flag to false
+            randomNumber = Math.floor(Math.random() * 5) + 1;
+
+            speedX = Math.random() * randomNumber; // Random speed between -1 and 1
+            speedY = Math.random() * randomNumber - 1;
+            moveSquare();
+            const egg = document.createElement("div");
+            egg.className = "egg";
+            egg.style.left = x + "px";
+            egg.style.top = y + "px";
+            container.appendChild(egg);
+
+            //  counts
+            totalEggs++; // Increment totalEggs count
+            eggCount.textContent = "Total Eggs: " + totalEggs;
+
+            function checkCollision(egg) {
+              const barn = document.getElementById("barn");
+              const eggRect = egg.getBoundingClientRect();
+              const barnRect = barn.getBoundingClientRect();
+
+              // Check for collision
+              if (
+                eggRect.right >= barnRect.left &&
+                eggRect.left <= barnRect.right &&
+                eggRect.bottom >= barnRect.top &&
+                eggRect.top <= barnRect.bottom
+              ) {
+                // Collision detected, remove the egg
+                egg.remove();
+                totalSold++; // Increment the totalSold count
+                soldCount.textContent = "Total Sold: " + totalSold; // Update the count in the div
+              }
+            }
+
+            // Set a timer for the egg to change to a circle after 5 seconds
+            setTimeout(function () {
+              egg.classList.add("circle");
+              let eggX = parseInt(egg.style.left);
+              let eggY = parseInt(egg.style.top);
+              let eggSpeedX = Math.random() * 4;
+              let eggSpeedY = Math.random() * 5 - 1;
+
+              function moveEgg() {
+                eggX += eggSpeedX;
+                eggY += eggSpeedY;
+                egg.style.left = eggX + "px";
+                egg.style.top = eggY + "px";
+
+                // Check for collision with the barn
+                checkCollision(egg);
+
+                egg.style.backgroundImage = 'url("chick.gif")';
+
+                if (
+                  eggX <= 0 ||
+                  eggX >= container.offsetWidth - egg.offsetWidth
+                ) {
+                  eggSpeedX *= -1;
+                }
+                if (
+                  eggY <= 0 ||
+                  eggY >= container.offsetHeight - egg.offsetHeight
+                ) {
+                  eggSpeedY *= -1;
+                }
+
+                // Check if the square is moving left
+                if (eggSpeedX > 0) {
+                  egg.style.transform = "scaleX(-1)"; // Flip image horizontally
+                } else {
+                  egg.style.transform = "scaleX(1)"; // Reset image flip
+                }
+
+                if (eggX >= container.offsetWidth - egg.offsetWidth) {
+                  eggX = container.offsetWidth - egg.offsetWidth;
+                }
+                if (eggY >= container.offsetHeight - egg.offsetHeight) {
+                  eggY = container.offsetHeight - egg.offsetHeight;
+                }
+              }
+
+              setInterval(moveEgg, 10);
+            }, 5000);
+          }
+
+          let multipler = 2000;
+          if (totalEggs > 10) {
+            multipler = 2000 * Math.floor(Math.random() * 5) + 1;
+          }
+          // Allow keyup event after 2 seconds
+          setTimeout(function () {
+            chickenSound.play();
+            isKeyUpAllowed = true;
+          }, multipler);
+        });
+      });
+    </script>
+  </body>
+</html>
